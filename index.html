@@ -222,7 +222,7 @@ async function sendMessage(text){
         'Authorization': 'Bearer unused'
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini-2024-07-18',
+        model: 'default',
         temperature: 0.5,
         messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...history, userTurn]
       })
