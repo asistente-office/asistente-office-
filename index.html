@@ -155,7 +155,7 @@
     </header>
 
     <div class="chat" id="chat">
-      <div class="msg system">Escaneaste el QR de tu mousepad 👋 Pregúntame lo que necesites de Word, Excel, PowerPoint, Outlook o cualquier app de Office.</div>
+      <div class="msg system">Escaneaste el QR de tu mousepad 👋 Solo respondo dudas de Microsoft Office (Word, Excel, PowerPoint, Outlook). ¿Qué necesitas saber?</div>
     </div>
 
     <div class="quick-row" id="quickRow">
@@ -171,10 +171,9 @@
   </div>
 
 <script>
-const SYSTEM_PROMPT = `Eres un asistente experto en Microsoft Office (Word, Excel, PowerPoint, Outlook, Teams, OneNote).
-El usuario escaneó un código QR en un mousepad físico que ya tiene impresos los atajos MÁS básicos y comunes (copiar, pegar, deshacer, negrita, autosuma, nueva diapositiva, etc).
-Tu trabajo es ayudar con comandos, atajos, fórmulas o procedimientos que NO son tan básicos: funciones de Excel, pasos para tareas específicas (tablas dinámicas, combinar correspondencia, macros simples, formato condicional, referencias absolutas, validación de datos, animaciones y transiciones en PowerPoint, reglas de Outlook, etc).
-Responde en español, de forma breve, clara y en pasos numerados cuando sea un procedimiento. Si es un atajo de teclado, muéstralo así: <span class="key">Ctrl</span> + <span class="key">Tecla</span>. No uses markdown como asteriscos, responde en HTML simple permitido (solo <span class="key">, <br>, <b>). Si la pregunta no es sobre Office, redirige amablemente hacia temas de Office.`;
+const SYSTEM_PROMPT = `Eres un asistente que SOLO responde preguntas sobre Microsoft Office: Word, Excel, PowerPoint, Outlook, Teams y OneNote (comandos, atajos, fórmulas, pasos, funciones).
+Si te preguntan algo que no sea sobre Microsoft Office, responde exactamente: "Solo puedo ayudarte con temas de Microsoft Office 🙂 ¿Qué necesitas saber de Word, Excel, PowerPoint u Outlook?" y no respondas nada más de ese tema.
+Responde en español, breve y claro, en pasos numerados si es un procedimiento. Los atajos de teclado escríbelos así: [Ctrl] + [Tecla]. No uses asteriscos ni markdown.`;
 
 const chat = document.getElementById('chat');
 const form = document.getElementById('chatForm');
@@ -223,17 +222,20 @@ async function sendMessage(text){
   convo += 'Usuario: ' + text;
 
   const url = 'https://text.pollinations.ai/' + encodeURIComponent(convo)
-    + '?model=openai&system=' + encodeURIComponent(SYSTEM_PROMPT)
-    + '&referrer=asistente-office';
+    + '?model=openai&system=' + encodeURIComponent(SYSTEM_PROMPT);
 
   try{
     const response = await fetch(url, { method: 'GET' });
     if(!response.ok){ throw new Error('HTTP ' + response.status); }
-    const reply = await response.text();
+    const reply = (await response.text()).trim();
     removeTyping();
-    addMessage('bot', reply || 'No pude generar una respuesta, intenta de nuevo.');
-    history.push(userTurn);
-    history.push({ role: 'assistant', content: reply });
+    if(!reply){
+      addMessage('bot', '(La IA devolvió una respuesta vacía — puede ser límite de uso temporal. Espera unos segundos e intenta de nuevo.)');
+    } else {
+      addMessage('bot', reply);
+      history.push(userTurn);
+      history.push({ role: 'assistant', content: reply });
+    }
   }catch(err){
     removeTyping();
     addMessage('bot', 'Ocurrió un error de conexión (' + err.message + '). Intenta de nuevo en un momento.');
@@ -259,4 +261,3 @@ quickRow.querySelectorAll('.quick').forEach(el => {
 </script>
 </body>
 </html>
-
