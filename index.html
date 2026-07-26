@@ -214,23 +214,27 @@ async function sendMessage(text){
   sendBtn.disabled = true;
   addTyping();
 
-  // Construimos el prompt como conversación en texto plano (más compatible vía GET)
-  let convo = '';
-  history.forEach(m => {
-    convo += (m.role === 'user' ? 'Usuario: ' : 'Asistente: ') + m.content + '\n';
-  });
-  convo += 'Usuario: ' + text;
-
-  const url = 'https://text.pollinations.ai/' + encodeURIComponent(convo)
-    + '?model=openai&system=' + encodeURIComponent(SYSTEM_PROMPT);
-
   try{
-    const response = await fetch(url, { method: 'GET' });
+    const response = await fetch('https://api.llm7.io/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer unused'
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini-2024-07-18',
+        temperature: 0.5,
+        messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...history, userTurn]
+      })
+    });
     if(!response.ok){ throw new Error('HTTP ' + response.status); }
-    const reply = (await response.text()).trim();
+    const data = await response.json();
     removeTyping();
+    const reply = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content)
+      ? data.choices[0].message.content.trim()
+      : '';
     if(!reply){
-      addMessage('bot', '(La IA devolvió una respuesta vacía — puede ser límite de uso temporal. Espera unos segundos e intenta de nuevo.)');
+      addMessage('bot', '(Respuesta vacía — intenta de nuevo en unos segundos.)');
     } else {
       addMessage('bot', reply);
       history.push(userTurn);
