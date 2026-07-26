@@ -173,6 +173,7 @@
 <script>
 const SYSTEM_PROMPT = `Eres un asistente que SOLO responde preguntas sobre Microsoft Office: Word, Excel, PowerPoint, Outlook, Teams y OneNote (comandos, atajos, fórmulas, pasos, funciones).
 Si te preguntan algo que no sea sobre Microsoft Office, responde exactamente: "Solo puedo ayudarte con temas de Microsoft Office 🙂 ¿Qué necesitas saber de Word, Excel, PowerPoint u Outlook?" y no respondas nada más de ese tema.
+Es MUY IMPORTANTE que solo des información correcta y verificada sobre los atajos y comandos reales de Microsoft Office. Si no estás seguro de un atajo o procedimiento exacto, dilo claramente en vez de inventar uno.
 Responde en español, breve y claro, en pasos numerados si es un procedimiento. Los atajos de teclado escríbelos así: [Ctrl] + [Tecla]. No uses asteriscos ni markdown.`;
 
 const chat = document.getElementById('chat');
@@ -222,8 +223,9 @@ async function sendMessage(text){
         'Authorization': 'Bearer unused'
       },
       body: JSON.stringify({
-        model: 'default',
-        temperature: 0.5,
+        model: 'pro',
+        temperature: 0.2,
+        max_tokens: 400,
         messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...history, userTurn]
       })
     });
